@@ -2,10 +2,14 @@ import java.io.FileNotFoundException;
 
 public class Main {
     public static void main(String[] args) throws FileNotFoundException {
-        GameState state = GameState.fromFile("c", false);
+        String stateFileName = "c";
+        String cell = "A1";
+        boolean isBlackTurn = false;
 
-        System.out.println(state);
+        GameState state = GameState.fromFile(stateFileName, isBlackTurn);
 
-        System.out.println(state.nextMovesFromCell("A1"));
+        for (GameState nextState : state.nextMovesFromCell(cell)) {
+            System.out.println(nextState);
+        }
     }
 }

@@ -45,20 +45,20 @@ public class GameState
         return newState;
     }
 
-    private int rowIndex(String move) {
-        if (move.length() < 2) {
+    private int rowIndex(String cell) {
+        if (cell.length() < 2) {
             return -1;
         }
 
-        return move.charAt(1) - '1';
+        return cell.charAt(1) - '1';
     }
 
-    private int colIndex(String move) {
-        if (move.length() < 2) {
+    private int colIndex(String cell) {
+        if (cell.length() < 2) {
             return -1;
         }
 
-        return move.charAt(0) - 'A';
+        return cell.charAt(0) - 'A';
     }
 
     private void populateNextMoves(
@@ -68,18 +68,22 @@ public class GameState
             ArrayList<GameState> nextMoves
     ) {
         Cell start_cell = cells.get(start_index);
+        int curr_row = curr_index % ROWS;
 
         for (int move : start_cell.movement()) {
             int next_index = curr_index + move;
+            int next_row = next_index % ROWS;
+            int row_diff = Math.abs(next_row - curr_row);
 
-            if (next_index < 0 || next_index > 63) {
+            if (next_index < 0 || next_index > ROWS * COLS - 1 || row_diff != 1) {
                 continue;
             }
 
             if (cells.get(next_index).isEmpty() && !hasJumped) {
                 nextMoves.add(this.movePieceFlipTurn(start_index, next_index));
 
-            } else if (start_cell.isOpponent(cells.get(next_index))) {
+            } else if (start_cell.isOpponent(cells.get(next_index))
+                    && cells.get(next_index + move).isEmpty()) {
                 GameState updated = this.removePiece(next_index);
 
                 next_index += move;
