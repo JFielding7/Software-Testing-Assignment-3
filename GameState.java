@@ -1,4 +1,8 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 public class GameState
 {
@@ -6,7 +10,7 @@ public class GameState
     private static final int COLS = 8;
 
     private ArrayList<Cell> cells;
-    private boolean black_turn;
+    private boolean blackTurn;
 
     public GameState(
             int moved_cell_start_index,
@@ -15,7 +19,7 @@ public class GameState
             GameState prevState
     ) {
         this.cells = new ArrayList<>(prevState.cells);
-        this.black_turn = !prevState.black_turn;
+        this.blackTurn = !prevState.blackTurn;
 
         Cell moved_cell = prevState.cells.get(moved_cell_start_index);
         this.cells.set(moved_cell_start_index, Cell.EMPTY);
@@ -24,6 +28,11 @@ public class GameState
         for (int cell_index : jumped_cells) {
             this.cells.set(cell_index, Cell.EMPTY);
         }
+    }
+
+    private GameState(ArrayList<Cell> cells,  boolean blackTurn) {
+        this.cells = cells;
+        this.blackTurn = blackTurn;
     }
 
     private int rowIndex(String move) {
@@ -78,8 +87,8 @@ public class GameState
         int start_index = r * COLS + c;
         Cell curr = cells.get(start_index);
 
-        if ((black_turn && !(curr.equals(Cell.BLACK) || curr.equals(Cell.BLACK_KING))) ||
-            (!black_turn && !(curr.equals(Cell.RED) || curr.equals(Cell.RED_KING)))) {
+        if ((blackTurn && !(curr.equals(Cell.BLACK) || curr.equals(Cell.BLACK_KING))) ||
+            (!blackTurn && !(curr.equals(Cell.RED) || curr.equals(Cell.RED_KING)))) {
             return null;
         }
 
@@ -107,5 +116,40 @@ public class GameState
         sb.append("└").append("─".repeat(horizontalSize)).append("┘");
         return sb.toString();
 
+    }
+
+    public static GameState fromFile(String filepath, boolean blackTurn) throws FileNotFoundException, NoSuchElementException {
+
+        File file = new File(filepath);
+
+        Scanner reader = new Scanner(file);
+
+        ArrayList<Cell> cells = new ArrayList<>();
+        for (int i = 0; i < COLS; i++) {
+            for (int j = 0; j < ROWS; j++) {
+                char data = (char) reader.nextByte();
+                switch (data) {
+                    case 'r':
+                        cells.add(Cell.RED);
+                        break;
+                    case 'b':
+                        cells.add(Cell.BLACK);
+                        break;
+                    case 'R':
+                        cells.add(Cell.RED_KING);
+                        break;
+                    case 'B':
+                        cells.add(Cell.BLACK_KING);
+                        break;
+                    case '-':
+                        cells.add(Cell.EMPTY);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid file format");
+                }
+            }
+        }
+
+        return new GameState(cells, blackTurn);
     }
 }
