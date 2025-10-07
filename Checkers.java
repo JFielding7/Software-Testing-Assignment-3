@@ -3,8 +3,8 @@ import java.util.ArrayList;
 public class Checkers
 {
 
-    private ArrayList<GameState> deck;
-    private ArrayList<Cell> players;
+    private ArrayList<Cell> board;
+    private ArrayList<GameState> history;
 
     public Checkers()
     {
