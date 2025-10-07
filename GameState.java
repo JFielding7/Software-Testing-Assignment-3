@@ -121,17 +121,18 @@ public class GameState
         StringBuilder sb = new StringBuilder();
 
         int horizontalSize = COLS * 2 - 1;
-        sb.append("┌").append("─".repeat(horizontalSize)).append("┐\n");
+        sb.append("   A B C D E F G H\n");
+        sb.append("  ┌").append("─".repeat(horizontalSize)).append("┐\n");
 
         for (int i = 0; i < ROWS; i++) {
-            sb.append("│");
+            sb.append(i + 1).append(" │");
             for (int j = 0; j < COLS; j++) {
                 sb.append(cells.get(i * COLS + j).toString()).append("│");
             }
             sb.append("\n");
         }
 
-        sb.append("└").append("─".repeat(horizontalSize)).append("┘\n");
+        sb.append("  └").append("─".repeat(horizontalSize)).append("┘\n");
         return sb.toString();
 
     }
