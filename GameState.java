@@ -30,8 +30,8 @@ public class GameState
     }
 
     private GameState movePieceFlipTurn(
-            int moved_cell_start_index,
-            int moved_cell_end_index
+        int moved_cell_start_index,
+        int moved_cell_end_index
     ) {
         GameState newState = new GameState();
 
@@ -98,7 +98,7 @@ public class GameState
         int r = rowIndex(cell);
         int c = colIndex(cell);
 
-        if (r < 0 || c < 0) {
+        if (r < 0 || c < 0 || r >= ROWS || c >= COLS) {
             return null;
         }
 
@@ -134,10 +134,12 @@ public class GameState
 
         sb.append("  └").append("─".repeat(horizontalSize)).append("┘\n");
         return sb.toString();
-
     }
 
-    public static GameState fromFile(String filepath, boolean blackTurn) throws FileNotFoundException, NoSuchElementException, IllegalArgumentException {
+    public static GameState fromFile(
+        String filepath,
+        boolean blackTurn
+    ) throws FileNotFoundException, NoSuchElementException, IllegalArgumentException {
 
         File file = new File(filepath);
 
