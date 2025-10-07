@@ -61,6 +61,14 @@ public class GameState
         return cell.charAt(0) - 'A';
     }
 
+    private boolean moveOffBoard(int startIndex, int endIndex) {
+        int curr_row = startIndex % ROWS;
+        int next_row = endIndex % ROWS;
+        int row_diff = Math.abs(curr_row - next_row);
+
+        return (endIndex < 0 || endIndex >= ROWS * COLS || row_diff != 1);
+    }
+
     private void populateNextMoves(
             int start_index,
             int curr_index,
@@ -68,25 +76,26 @@ public class GameState
             ArrayList<GameState> nextMoves
     ) {
         Cell start_cell = cells.get(start_index);
-        int curr_row = curr_index % ROWS;
 
         for (int move : start_cell.movement()) {
             int next_index = curr_index + move;
-            int next_row = next_index % ROWS;
-            int row_diff = Math.abs(next_row - curr_row);
 
-            if (next_index < 0 || next_index > ROWS * COLS - 1 || row_diff != 1) {
+            if (moveOffBoard(curr_index, next_index)) {
                 continue;
             }
 
             if (cells.get(next_index).isEmpty() && !hasJumped) {
                 nextMoves.add(this.movePieceFlipTurn(start_index, next_index));
 
-            } else if (start_cell.isOpponent(cells.get(next_index))
-                    && cells.get(next_index + move).isEmpty()) {
-                GameState updated = this.removePiece(next_index);
-
+            } else if (start_cell.isOpponent(cells.get(next_index))) {
+                int opponentIndex = next_index;
                 next_index += move;
+
+                if (moveOffBoard(curr_index, next_index) || cells.get(next_index).isEmpty()) {
+                    continue;
+                }
+
+                GameState updated = this.removePiece(opponentIndex);
                 nextMoves.add(updated.movePieceFlipTurn(start_index, next_index));
 
                 updated.populateNextMoves(start_index, next_index, true, nextMoves);
@@ -99,7 +108,7 @@ public class GameState
         int c = colIndex(cell);
 
         if (r < 0 || c < 0 || r >= ROWS || c >= COLS) {
-            return null;
+            return new ArrayList<>();
         }
 
         int start_index = r * COLS + c;
@@ -107,7 +116,7 @@ public class GameState
 
         if ((blackTurn && !(curr.equals(Cell.BLACK) || curr.equals(Cell.BLACK_KING))) ||
             (!blackTurn && !(curr.equals(Cell.RED) || curr.equals(Cell.RED_KING)))) {
-            return null;
+            return new ArrayList<>();
         }
 
         ArrayList<GameState> nextGameStates = new ArrayList<>();
