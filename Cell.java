@@ -42,6 +42,17 @@ public enum Cell
         return false;
     }
 
+    public Cell toKing() {
+        switch (this) {
+            case RED:
+                return RED_KING;
+            case BLACK:
+                return BLACK_KING;
+        }
+
+        return null;
+    }
+
     @Override
     public String toString()
     {

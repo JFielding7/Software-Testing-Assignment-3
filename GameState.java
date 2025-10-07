@@ -18,11 +18,11 @@ public class GameState
         this.black_turn = !prevState.black_turn;
 
         Cell moved_cell = prevState.cells.get(moved_cell_start_index);
-        this.cells.set(moved_cell_start_index, null);
+        this.cells.set(moved_cell_start_index, Cell.EMPTY);
         this.cells.set(moved_cell_end_index, moved_cell);
 
         for (int cell_index : jumped_cells) {
-            this.cells.set(cell_index, null);
+            this.cells.set(cell_index, Cell.EMPTY);
         }
     }
 
