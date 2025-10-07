@@ -11,21 +11,31 @@ public enum Cell
     RED_KING("♛"),
     BLACK_KING("♕");
 
-    private final String name;
+    private final String symbol;
 
     Cell(String name)
     {
-        this.name = name;
+        this.symbol = name;
     }
+
+    private static final int RIGHT_DOWN = 7;
+    private static final int LEFT_DOWN = 9;
+    private static final int RIGHT_UP = -7;
+    private static final int LEFT_UP = -9;
+
+    private static final int RED_KING_START = 56;
+    private static final int RED_KING_END = 63;
+    private static final int BLACK_KING_START = 0;
+    private static final int BLACK_KING_END = 7;
 
     public ArrayList<Integer> movement() {
         switch (this) {
             case RED:
-                return new ArrayList<>(List.of(1));
+                return new ArrayList<>(List.of(RIGHT_DOWN, LEFT_DOWN));
             case BLACK:
-                return new ArrayList<>(List.of(-1));
+                return new ArrayList<>(List.of(RIGHT_UP, LEFT_UP));
             case RED_KING, BLACK_KING:
-                return new ArrayList<>(List.of(-1, 1));
+                return new ArrayList<>(List.of(RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP));
         }
 
         return new ArrayList<>();
@@ -42,20 +52,27 @@ public enum Cell
         return false;
     }
 
-    public Cell toKing() {
+    public Cell promoteIfReachedEnd(int cell_index) {
         switch (this) {
             case RED:
-                return RED_KING;
+                if (RED_KING_START <= cell_index && cell_index <= RED_KING_END)
+                    return RED_KING;
+                break;
             case BLACK:
-                return BLACK_KING;
+                if (BLACK_KING_START <= cell_index && cell_index <= BLACK_KING_END)
+                    return BLACK_KING;
         }
 
-        return null;
+        return this;
+    }
+
+    public boolean isEmpty() {
+        return this.equals(Cell.EMPTY);
     }
 
     @Override
     public String toString()
     {
-        return name;
+        return symbol;
     }
 }

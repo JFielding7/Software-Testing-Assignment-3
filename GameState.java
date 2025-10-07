@@ -12,27 +12,37 @@ public class GameState
     private ArrayList<Cell> cells;
     private boolean blackTurn;
 
-    public GameState(
-            int moved_cell_start_index,
-            int moved_cell_end_index,
-            ArrayList<Integer> jumped_cells,
-            GameState prevState
-    ) {
-        this.cells = new ArrayList<>(prevState.cells);
-        this.blackTurn = !prevState.blackTurn;
-
-        Cell moved_cell = prevState.cells.get(moved_cell_start_index);
-        this.cells.set(moved_cell_start_index, Cell.EMPTY);
-        this.cells.set(moved_cell_end_index, moved_cell);
-
-        for (int cell_index : jumped_cells) {
-            this.cells.set(cell_index, Cell.EMPTY);
-        }
-    }
+    private GameState() {}
 
     private GameState(ArrayList<Cell> cells,  boolean blackTurn) {
         this.cells = cells;
         this.blackTurn = blackTurn;
+    }
+
+    private GameState removePiece(int piece_index) {
+        GameState newState = new GameState();
+
+        newState.cells = new ArrayList<>(this.cells);
+        newState.blackTurn = this.blackTurn;
+        newState.cells.set(piece_index, Cell.EMPTY);
+
+        return newState;
+    }
+
+    private GameState movePieceFlipTurn(
+            int moved_cell_start_index,
+            int moved_cell_end_index
+    ) {
+        GameState newState = new GameState();
+
+        newState.cells = new ArrayList<>(this.cells);
+        newState.blackTurn = !this.blackTurn;
+
+        Cell moved_cell = this.cells.get(moved_cell_start_index);
+        newState.cells.set(moved_cell_start_index, Cell.EMPTY);
+        newState.cells.set(moved_cell_end_index, moved_cell.promoteIfReachedEnd(moved_cell_end_index));
+
+        return newState;
     }
 
     private int rowIndex(String move) {
@@ -54,7 +64,7 @@ public class GameState
     private void populateNextMoves(
             int start_index,
             int curr_index,
-            ArrayList<Integer> jumped,
+            boolean hasJumped,
             ArrayList<GameState> nextMoves
     ) {
         Cell start_cell = cells.get(start_index);
@@ -62,23 +72,27 @@ public class GameState
         for (int move : start_cell.movement()) {
             int next_index = curr_index + move;
 
-            if (!start_cell.isOpponent(cells.get(next_index))) {
-                nextMoves.add(new GameState(start_index, next_index, jumped, this));
+            if (next_index < 0 || next_index > 63) {
+                continue;
+            }
 
-            } else if (cells.get(next_index).equals(Cell.EMPTY)) {
-                ArrayList<Integer> new_jumped = new ArrayList<>(jumped);
-                new_jumped.add(next_index);
+            if (cells.get(next_index).isEmpty() && !hasJumped) {
+                nextMoves.add(this.movePieceFlipTurn(start_index, next_index));
+
+            } else if (start_cell.isOpponent(cells.get(next_index))) {
+                GameState updated = this.removePiece(next_index);
+
                 next_index += move;
-                nextMoves.add(new GameState(start_index, next_index, new_jumped, this));
+                nextMoves.add(updated.movePieceFlipTurn(start_index, next_index));
 
-                populateNextMoves(start_index, next_index, new_jumped, nextMoves);
+                updated.populateNextMoves(start_index, next_index, true, nextMoves);
             }
         }
     }
 
-    public ArrayList<GameState> nextGameStates(String move) {
-        int r = rowIndex(move);
-        int c = colIndex(move);
+    public ArrayList<GameState> nextMovesFromCell(String cell) {
+        int r = rowIndex(cell);
+        int c = colIndex(cell);
 
         if (r < 0 || c < 0) {
             return null;
@@ -93,7 +107,7 @@ public class GameState
         }
 
         ArrayList<GameState> nextGameStates = new ArrayList<>();
-        populateNextMoves(start_index, start_index, new ArrayList<>(), nextGameStates);
+        populateNextMoves(start_index, start_index, false, nextGameStates);
 
         return nextGameStates;
     }
@@ -102,32 +116,35 @@ public class GameState
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        int horizontalSize = COLS * 2 + 1;
+        int horizontalSize = COLS * 2 - 1;
         sb.append("┌").append("─".repeat(horizontalSize)).append("┐\n");
 
         for (int i = 0; i < ROWS; i++) {
-            sb.append("│ ");
+            sb.append("│");
             for (int j = 0; j < COLS; j++) {
-                sb.append(cells.get(i * COLS + j).toString()).append(" ");
+                sb.append(cells.get(i * COLS + j).toString()).append("│");
             }
-            sb.append("│\n");
+            sb.append("\n");
         }
 
-        sb.append("└").append("─".repeat(horizontalSize)).append("┘");
+        sb.append("└").append("─".repeat(horizontalSize)).append("┘\n");
         return sb.toString();
 
     }
 
-    public static GameState fromFile(String filepath, boolean blackTurn) throws FileNotFoundException, NoSuchElementException {
+    public static GameState fromFile(String filepath, boolean blackTurn) throws FileNotFoundException, NoSuchElementException, IllegalArgumentException {
 
         File file = new File(filepath);
 
         Scanner reader = new Scanner(file);
 
         ArrayList<Cell> cells = new ArrayList<>();
-        for (int i = 0; i < COLS; i++) {
-            for (int j = 0; j < ROWS; j++) {
-                char data = (char) reader.nextByte();
+
+        for (int i = 0; i < ROWS; i++) {
+            String line = reader.nextLine();
+
+            for (int j = 0; j < COLS; j++) {
+                char data = line.charAt(j);
                 switch (data) {
                     case 'r':
                         cells.add(Cell.RED);
