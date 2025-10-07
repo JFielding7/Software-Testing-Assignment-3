@@ -91,6 +91,21 @@ public class GameState
 
     @Override
     public String toString() {
-        return super.toString();
+        StringBuilder sb = new StringBuilder();
+
+        int horizontalSize = COLS * 2 + 1;
+        sb.append("┌").append("─".repeat(horizontalSize)).append("┐\n");
+
+        for (int i = 0; i < ROWS; i++) {
+            sb.append("│ ");
+            for (int j = 0; j < COLS; j++) {
+                sb.append(cells.get(i * COLS + j).toString()).append(" ");
+            }
+            sb.append("│\n");
+        }
+
+        sb.append("└").append("─".repeat(horizontalSize)).append("┘");
+        return sb.toString();
+
     }
 }
