@@ -13,9 +13,9 @@ public enum Cell
 
     private final String symbol;
 
-    Cell(String name)
+    Cell(String symbol)
     {
-        this.symbol = name;
+        this.symbol = symbol;
     }
 
     private static final int RIGHT_DOWN = 7;
@@ -39,6 +39,14 @@ public enum Cell
         }
 
         return new ArrayList<>();
+    }
+
+    public boolean isRedPiece() {
+        return this.equals(RED) || this.equals(RED_KING);
+    }
+
+    public boolean isBlackPiece() {
+        return this.equals(BLACK) || this.equals(BLACK_KING);
     }
 
     public boolean isOpponent(Cell other)  {

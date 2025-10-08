@@ -30,17 +30,17 @@ public class GameState
     }
 
     private GameState movePieceFlipTurn(
-        int moved_cell_start_index,
-        int moved_cell_end_index
+        int movedCellStartIndex,
+        int movedCellEndIndex
     ) {
         GameState newState = new GameState();
 
         newState.cells = new ArrayList<>(this.cells);
         newState.blackTurn = !this.blackTurn;
 
-        Cell moved_cell = this.cells.get(moved_cell_start_index);
-        newState.cells.set(moved_cell_start_index, Cell.EMPTY);
-        newState.cells.set(moved_cell_end_index, moved_cell.promoteIfReachedEnd(moved_cell_end_index));
+        Cell moved_cell = this.cells.get(movedCellStartIndex);
+        newState.cells.set(movedCellStartIndex, Cell.EMPTY);
+        newState.cells.set(movedCellEndIndex, moved_cell.promoteIfReachedEnd(movedCellEndIndex));
 
         return newState;
     }
@@ -62,43 +62,43 @@ public class GameState
     }
 
     private boolean moveOffBoard(int startIndex, int endIndex) {
-        int curr_row = startIndex % ROWS;
-        int next_row = endIndex % ROWS;
-        int row_diff = Math.abs(curr_row - next_row);
+        int currRow = startIndex % ROWS;
+        int nextRow = endIndex % ROWS;
+        int rowDiff = Math.abs(currRow - nextRow);
 
-        return (endIndex < 0 || endIndex >= ROWS * COLS || row_diff != 1);
+        return (endIndex < 0 || endIndex >= ROWS * COLS || rowDiff != 1);
     }
 
     private void populateNextMoves(
-            int start_index,
-            int curr_index,
+            int startIndex,
+            int currIndex,
             boolean hasJumped,
             ArrayList<GameState> nextMoves
     ) {
-        Cell start_cell = cells.get(start_index);
+        Cell startCell = cells.get(startIndex);
 
-        for (int move : start_cell.movement()) {
-            int next_index = curr_index + move;
+        for (int move : startCell.movement()) {
+            int nextIndex = currIndex + move;
 
-            if (moveOffBoard(curr_index, next_index)) {
+            if (moveOffBoard(currIndex, nextIndex)) {
                 continue;
             }
 
-            if (cells.get(next_index).isEmpty() && !hasJumped) {
-                nextMoves.add(this.movePieceFlipTurn(start_index, next_index));
+            if (cells.get(nextIndex).isEmpty() && !hasJumped) {
+                nextMoves.add(this.movePieceFlipTurn(startIndex, nextIndex));
 
-            } else if (start_cell.isOpponent(cells.get(next_index))) {
-                int opponentIndex = next_index;
-                next_index += move;
+            } else if (startCell.isOpponent(cells.get(nextIndex))) {
+                int opponentIndex = nextIndex;
+                nextIndex += move;
 
-                if (moveOffBoard(curr_index, next_index) || cells.get(next_index).isEmpty()) {
+                if (moveOffBoard(opponentIndex, nextIndex) || !cells.get(nextIndex).isEmpty()) {
                     continue;
                 }
 
                 GameState updated = this.removePiece(opponentIndex);
-                nextMoves.add(updated.movePieceFlipTurn(start_index, next_index));
+                nextMoves.add(updated.movePieceFlipTurn(startIndex, nextIndex));
 
-                updated.populateNextMoves(start_index, next_index, true, nextMoves);
+                updated.populateNextMoves(startIndex, nextIndex, true, nextMoves);
             }
         }
     }
@@ -111,16 +111,16 @@ public class GameState
             return new ArrayList<>();
         }
 
-        int start_index = r * COLS + c;
-        Cell curr = cells.get(start_index);
+        int startIndex = r * COLS + c;
+        Cell curr = cells.get(startIndex);
 
-        if ((blackTurn && !(curr.equals(Cell.BLACK) || curr.equals(Cell.BLACK_KING))) ||
-            (!blackTurn && !(curr.equals(Cell.RED) || curr.equals(Cell.RED_KING)))) {
+        if ((blackTurn && !curr.isBlackPiece()) ||
+            (!blackTurn && !curr.isRedPiece())) {
             return new ArrayList<>();
         }
 
         ArrayList<GameState> nextGameStates = new ArrayList<>();
-        populateNextMoves(start_index, start_index, false, nextGameStates);
+        populateNextMoves(startIndex, startIndex, false, nextGameStates);
 
         return nextGameStates;
     }
@@ -184,5 +184,13 @@ public class GameState
         }
 
         return new GameState(cells, blackTurn);
+    }
+
+    public boolean isBlackTurn() {
+        return this.blackTurn;
+    }
+
+    public ArrayList<Cell> getCells() {
+        return this.cells;
     }
 }
